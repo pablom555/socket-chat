@@ -4,9 +4,15 @@ const socket = io();
 // let name = params.get('name');
 // let chatRoom = params.get('chatRoom');
 
-if (!params.has('id')) {
+if (!params.has('name') || !params.has('chatRoom')) {
     window.location = 'index.html';
-    throw new Error("The user id is required")
+    throw new Error("The Name and Chat Room are required")
+}
+
+if ((name === ' ' || name === '' || name === null) ||
+    (chatRoom === ' ' || chatRoom === '' || chatRoom === null)) {
+    window.location = 'index.html';
+    throw new Error("The Name and Chat Room are required")
 }
 
 let formEnviarElement = document.querySelector('#formEnviar');
@@ -41,13 +47,13 @@ socket.on('publicChatMessage', (message) => {
     renderMessageRecived(message);
 })
 
-
 /*
 * Output messages
 */
 socket.emit('getInChat', user, function (resp) {
     renderListUsers(resp)
 })
+
 
 formEnviarElement.addEventListener('submit', (e) => {
     e.preventDefault();
