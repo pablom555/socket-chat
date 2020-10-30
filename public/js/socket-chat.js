@@ -1,20 +1,16 @@
 const socket = io();
 
-let params = (new URL(document.location)).searchParams;
+// Se declararon en el archivo socket-chat.js
+// let name = params.get('name');
+// let chatRoom = params.get('chatRoom');
 
-if (!params.has('name') || !params.has('chatRoom')) {
+if (!params.has('id')) {
     window.location = 'index.html';
-    throw new Error("The Name and Chat Room are required")
+    throw new Error("The user id is required")
 }
 
-let name = params.get('name');
-let chatRoom = params.get('chatRoom');
-
-if ((name === ' ' || name === '' || name === null) ||
-    (chatRoom === ' ' || chatRoom === '' || chatRoom === null)) {
-    window.location = 'index.html';
-    throw new Error("The Name and Chat Room are required")
-}
+let formEnviarElement = document.querySelector('#formEnviar');
+let txtMensajeElement = document.querySelector('#txtMensaje');
 
 const user = {
     name,
@@ -32,22 +28,17 @@ socket.on('disconnect', () => {
 /*
 * Input messages
 */
-socket.on('leftChatMessage', (data) => {
-    console.log(data)
+socket.on('leftChatMessage', (message) => {
+    renderMessageRecived(message);
 })
 
 socket.on('usersList', (data) => {
-    console.log(data)
+    renderListUsers(data)
 })
 
 // Public messages recived
-socket.on('publicChatMessage', (data) => {
-    console.log(data)
-})
-
-// Private messages recived
-socket.on('PrivateChatMessage', (data) => {
-    console.log(data)
+socket.on('publicChatMessage', (message) => {
+    renderMessageRecived(message);
 })
 
 
@@ -55,14 +46,23 @@ socket.on('PrivateChatMessage', (data) => {
 * Output messages
 */
 socket.emit('getInChat', user, function (resp) {
-    console.log('Connected Users', resp)
+    renderListUsers(resp)
 })
 
-// Public messages sended
-socket.emit('sendChatMessage', { message: 'Hola como estan amigos' });
+formEnviarElement.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-// Private messages sended
-socket.emit('sendPrivateChatMessage', { id: '', message: 'Hola como estan' }, function (data) {
-    console.log(data)
+    if (txtMensajeElement.value.trim() === '' || txtMensajeElement.value.trim === ' ') {
+        return;
+    }
+
+    // Public messages sended
+    socket.emit('sendChatMessage', { message: txtMensajeElement.value }, function (message) {
+
+        txtMensajeElement.value = '';
+        txtMensajeElement.focus();
+        renderMessageSend(message);
+
+    });
 })
 
